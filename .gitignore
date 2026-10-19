@@ -1,0 +1,19 @@
+# Weights, exports, data
+*.pt
+*.onnx
+*.engine
+*.tflite
+data/
+runs/
+*.zip
+
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Large prediction dumps (keep summaries, not raw predictions)
+results/predictions/
+models/
