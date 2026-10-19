@@ -72,3 +72,22 @@ def save_env(info: dict, path: str | Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(info, indent=2), encoding="utf-8")
     return path
+
+
+def describe_hardware() -> dict:
+    """Short, human-readable description of the machine the code is running on."""
+    info = {"cpu": _cpu_name(), "os": platform.platform(), "python": sys.version.split()[0]}
+    try:
+        import psutil
+
+        info["cores (physical / logical)"] = f"{psutil.cpu_count(logical=False)} / {psutil.cpu_count(logical=True)}"
+        info["ram_gb"] = round(psutil.virtual_memory().total / 1024**3, 1)
+    except ImportError:
+        pass
+    try:
+        import torch
+
+        info["gpu"] = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "none detected"
+    except ImportError:
+        info["gpu"] = "unknown"
+    return info

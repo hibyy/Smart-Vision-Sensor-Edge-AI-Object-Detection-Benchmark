@@ -100,6 +100,42 @@ class YoloDetector:
         self.last_speed = dict(result.speed)  # preprocess / inference / postprocess (ms)
         return self._to_detections(result)
 
+    @property
+    def class_names(self) -> list[str] | None:
+        try:
+            names = self.model.names
+            return [str(names[i]) for i in sorted(names)]
+        except Exception:
+            return None
+
+    def runtime_info(self) -> dict:
+        """What this detector is actually running on (call after the first detect())."""
+        suffix = self.weights.suffix.lower()
+        is_onnx = suffix == ".onnx"
+        info = {
+            "model file": self.weights.name,
+            "model size (MB)": round(self.weights.stat().st_size / 1024**2, 2) if self.weights.exists() else "?",
+            "input size": f"{self.imgsz}px",
+            "backend": "ONNX Runtime" if is_onnx else "PyTorch",
+            "device requested": "CPU" if str(self.device) == "cpu" else f"GPU {self.device}",
+            "threads requested": self.threads if self.threads else "auto",
+            "tracker": self.tracker if self.track else "off",
+        }
+        session = getattr(getattr(getattr(self.model, "predictor", None), "model", None), "session", None)
+        if session is not None:
+            info["execution provider"] = session.get_providers()[0]
+            n = session.get_session_options().intra_op_num_threads
+            info["threads effective"] = n if n else "auto (all cores)"
+        elif not is_onnx:
+            try:
+                import torch
+
+                info["execution provider"] = "CUDA" if str(self.device) != "cpu" else "CPU (PyTorch)"
+                info["threads effective"] = torch.get_num_threads()
+            except ImportError:
+                pass
+        return info
+
     def reset_tracker(self) -> None:
         """Forget tracker state (call between videos)."""
         predictor = getattr(self.model, "predictor", None)

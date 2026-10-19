@@ -5,7 +5,7 @@ Settings: Internet = On. CPU is enough; a GPU is optional.
 
 ```python
 # Cell 1: code
-!git clone https://github.com/hibyy/smart-vision-sensor.git
+!git clone https://github.com/hibyy/Smart-Vision-Sensor-Edge-AI-Object-Detection-Benchmark.git
 %cd smart-vision-sensor
 !pip install -q -r requirements.txt
 !pip install -q -e .
